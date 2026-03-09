@@ -31,6 +31,7 @@ jobs:
           mingw-w64-ucrt-x86_64-ninja
           mingw-w64-ucrt-x86_64-sdl3
           mingw-w64-ucrt-x86_64-pkgconf
+          zip
     
     - name: Configure CMake
       run: |
