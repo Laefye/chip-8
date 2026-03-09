@@ -52,25 +52,20 @@ jobs:
     - name: Copy dependencies
       run: |
         mkdir -p release
-        cp install/bin/CHIP8Emu.exe release/
-    
-    - name: Create archive
-      run: |
-        cd release
-        zip -r ../CHIP8Emu-windows-x64.zip *
+        cp install/bin/CHIP8Emu.exe release/CHIP8Emu-windows-x64.exe
     
     - name: Upload artifact
       uses: actions/upload-artifact@v4
       with:
         name: CHIP8Emu-windows-x64
-        path: CHIP8Emu-windows-x64.zip
+        path: release/CHIP8Emu-windows-x64.exe
         retention-days: 7
     
     - name: Create Release
       if: startsWith(github.ref, 'refs/tags/')
-      uses: softprops/action-gh-release@v1
+      uses: softprops/action-gh-release@v2
       with:
-        files: CHIP8Emu-windows-x64.zip
+        files: release/CHIP8Emu-windows-x64.exe
         draft: false
         prerelease: false
         generate_release_notes: true
