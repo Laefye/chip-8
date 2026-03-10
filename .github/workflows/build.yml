@@ -2,11 +2,11 @@ name: Build and Release
 
 on:
   push:
-    branches: [ main, master ]
+    branches: [ main ]
     tags:
       - 'v*'
   pull_request:
-    branches: [ main, master ]
+    branches: [ main ]
 
 jobs:
   build-windows:
@@ -132,6 +132,7 @@ jobs:
         
         convert -size 256x256 xc:none AppDir/usr/share/icons/hicolor/256x256/apps/chip8emu.png || \
           touch AppDir/usr/share/icons/hicolor/256x256/apps/chip8emu.png
+        cp AppDir/usr/share/icons/hicolor/256x256/apps/chip8emu.png AppDir/chip8emu.png
 
     - name: Download appimagetool
       run: |
