@@ -114,6 +114,7 @@ jobs:
         mkdir -p AppDir/usr/share/icons/hicolor/256x256/apps
 
         cp install/bin/CHIP8Emu AppDir/usr/bin/chip8emu
+          chmod +x AppDir/usr/bin/chip8emu
 
         # .desktop файл
         cat > AppDir/usr/share/applications/chip8emu.desktop << 'EOF'
@@ -128,7 +129,8 @@ jobs:
         cp AppDir/usr/share/applications/chip8emu.desktop AppDir/
 
         wget -q "https://raw.githubusercontent.com/AppImage/AppImageKit/master/resources/AppRun" \
-          -O AppDir/AppRun || true
+          -O AppDir/AppRun
+        chmod +x AppDir/AppRun
         
         convert -size 256x256 xc:none AppDir/usr/share/icons/hicolor/256x256/apps/chip8emu.png || \
           touch AppDir/usr/share/icons/hicolor/256x256/apps/chip8emu.png
