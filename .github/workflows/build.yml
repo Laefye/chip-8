@@ -101,7 +101,7 @@ jobs:
           -DCMAKE_PREFIX_PATH=${{ github.workspace }}/sdl3-install
 
     - name: Build
-      run: cmake --build build
+      run: cmake --build build --parallel
 
     - name: Install
       run: cmake --install build
@@ -179,4 +179,3 @@ jobs:
         generate_release_notes: true
       env:
         GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        

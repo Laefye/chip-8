@@ -4,7 +4,7 @@
 
 ## Requirements
 
-- CMake 3.2 or higher
+- CMake 3.28 or higher
 - C++20 compatible compiler
 - SDL3 library
 
