@@ -1,4 +1,4 @@
-cmake_minimum_required(VERSION 4.2)
+cmake_minimum_required(VERSION 3.2)
 project(CHIP8Emu)
 
 set(CMAKE_CXX_STANDARD 20)
@@ -18,7 +18,8 @@ target_include_directories(CPU PUBLIC cpu)
 
 add_executable(CHIP8Emu src/main.cpp
         src/SDLFramebuffer.cpp
-        src/SDLFramebuffer.h)
+        src/SDLFramebuffer.h
+)
 target_link_libraries(CHIP8Emu PRIVATE CPU SDL3::SDL3)
 
 install(TARGETS CHIP8Emu RUNTIME DESTINATION ${CMAKE_INSTALL_BINDIR})

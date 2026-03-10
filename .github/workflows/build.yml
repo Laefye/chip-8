@@ -9,7 +9,7 @@ on:
     branches: [ main, master ]
 
 jobs:
-  build:
+  build-windows:
     runs-on: windows-latest
     
     defaults:
@@ -18,7 +18,7 @@ jobs:
     
     steps:
     - name: Checkout code
-      uses: actions/checkout@v6
+      uses: actions/checkout@v4
     
     - name: Setup MSYS2
       uses: msys2/setup-msys2@v2
@@ -60,14 +60,123 @@ jobs:
         name: CHIP8Emu-windows-x64
         path: release/CHIP8Emu-windows-x64.exe
         retention-days: 7
-    
+
+  build-linux:
+    runs-on: ubuntu-latest
+
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+
+    - name: Install build dependencies
+      run: |
+        sudo apt-get update
+        sudo apt-get install build-essential git make \
+          pkg-config cmake ninja-build gnome-desktop-testing libasound2-dev libpulse-dev \
+          libaudio-dev libfribidi-dev libjack-dev libsndio-dev libx11-dev libxext-dev \
+          libxrandr-dev libxcursor-dev libxfixes-dev libxi-dev libxss-dev libxtst-dev \
+          libxkbcommon-dev libdrm-dev libgbm-dev libgl1-mesa-dev libgles2-mesa-dev \
+          libegl1-mesa-dev libdbus-1-dev libibus-1.0-dev libudev-dev libthai-dev imagemagick
+
+    - name: Build SDL3 from source
+      run: |
+        git clone --depth 1 --branch release-3.4.2 \
+          https://github.com/libsdl-org/SDL.git sdl3-src
+        cmake -S sdl3-src -B sdl3-build \
+          -G Ninja \
+          -DCMAKE_BUILD_TYPE=Release \
+          -DCMAKE_INSTALL_PREFIX=${{ github.workspace }}/sdl3-install \
+          -DSDL_STATIC=ON \
+          -DSDL_SHARED=OFF \
+          -DSDL_TEST=OFF
+        cmake --build sdl3-build
+        cmake --install sdl3-build
+
+    - name: Configure CMake
+      run: |
+        cmake -S . -B build \
+          -G Ninja \
+          -DCMAKE_BUILD_TYPE=Release \
+          -DCMAKE_INSTALL_PREFIX=${{ github.workspace }}/install \
+          -DCMAKE_PREFIX_PATH=${{ github.workspace }}/sdl3-install
+
+    - name: Build
+      run: cmake --build build
+
+    - name: Install
+      run: cmake --install build
+
+    - name: Create AppDir
+      run: |
+        mkdir -p AppDir/usr/bin
+        mkdir -p AppDir/usr/lib
+        mkdir -p AppDir/usr/share/applications
+        mkdir -p AppDir/usr/share/icons/hicolor/256x256/apps
+
+        cp install/bin/CHIP8Emu AppDir/usr/bin/chip8emu
+
+        # .desktop файл
+        cat > AppDir/usr/share/applications/chip8emu.desktop << 'EOF'
+        [Desktop Entry]
+        Name=CHIP8Emu
+        Exec=chip8emu
+        Icon=chip8emu
+        Type=Application
+        Categories=Game;Emulator;
+        EOF
+
+        cp AppDir/usr/share/applications/chip8emu.desktop AppDir/
+
+        wget -q "https://raw.githubusercontent.com/AppImage/AppImageKit/master/resources/AppRun" \
+          -O AppDir/AppRun || true
+        
+        convert -size 256x256 xc:none AppDir/usr/share/icons/hicolor/256x256/apps/chip8emu.png || \
+          touch AppDir/usr/share/icons/hicolor/256x256/apps/chip8emu.png
+
+    - name: Download appimagetool
+      run: |
+        wget -q "https://github.com/AppImage/appimagetool/releases/download/continuous/appimagetool-x86_64.AppImage" \
+          -O appimagetool
+        chmod +x appimagetool
+
+    - name: Build AppImage
+      run: |
+        ARCH=x86_64 ./appimagetool --appimage-extract-and-run AppDir \
+          CHIP8Emu-linux-x86_64.AppImage
+
+    - name: Upload artifact
+      uses: actions/upload-artifact@v4
+      with:
+        name: CHIP8Emu-linux-x86_64
+        path: CHIP8Emu-linux-x86_64.AppImage
+        retention-days: 7
+
+  release:
+    if: startsWith(github.ref, 'refs/tags/')
+    needs: [build-windows, build-linux]
+    runs-on: ubuntu-latest
+
+    steps:
+    - name: Download Windows artifact
+      uses: actions/download-artifact@v4
+      with:
+        name: CHIP8Emu-windows-x64
+
+    - name: Download Linux artifact
+      uses: actions/download-artifact@v4
+      with:
+        name: CHIP8Emu-linux-x86_64
+
     - name: Create Release
       if: startsWith(github.ref, 'refs/tags/')
       uses: softprops/action-gh-release@v2
       with:
-        files: release/CHIP8Emu-windows-x64.exe
+        files: |
+          CHIP8Emu-windows-x64.exe
+          CHIP8Emu-linux-x86_64.AppImage
         draft: false
         prerelease: false
         generate_release_notes: true
       env:
         GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        
