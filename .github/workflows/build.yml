@@ -159,12 +159,12 @@ jobs:
 
     steps:
     - name: Download Windows artifact
-      uses: actions/download-artifact@v4
+      uses: actions/download-artifact@v8
       with:
         name: CHIP8Emu-windows-x64
 
     - name: Download Linux artifact
-      uses: actions/download-artifact@v4
+      uses: actions/download-artifact@v8
       with:
         name: CHIP8Emu-linux-x86_64
 
